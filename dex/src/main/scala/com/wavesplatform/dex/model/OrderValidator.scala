@@ -25,7 +25,7 @@ import com.wavesplatform.dex.error
 import com.wavesplatform.dex.error._
 import com.wavesplatform.dex.grpc.integration.clients.{RunScriptResult, WavesBlockchainClient}
 import com.wavesplatform.dex.grpc.integration.dto.BriefAssetDescription
-import com.wavesplatform.dex.market.OrderBookActor.MarketStatus
+import com.wavesplatform.dex.market.OrderBookStateActor.MarketStatus
 import com.wavesplatform.dex.metrics.TimerExt
 import com.wavesplatform.dex.model.Events.OrderExecuted
 import com.wavesplatform.dex.settings.OrderFeeSettings._

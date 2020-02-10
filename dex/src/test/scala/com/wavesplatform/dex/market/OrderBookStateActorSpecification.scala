@@ -15,7 +15,7 @@ import com.wavesplatform.dex.domain.order.{Order, OrderType}
 import com.wavesplatform.dex.fixtures.RestartableActor
 import com.wavesplatform.dex.fixtures.RestartableActor.RestartActor
 import com.wavesplatform.dex.market.MatcherActor.SaveSnapshot
-import com.wavesplatform.dex.market.OrderBookActor._
+import com.wavesplatform.dex.market.OrderBookStateActor._
 import com.wavesplatform.dex.model.Events.{OrderAdded, OrderCanceled, OrderExecuted}
 import com.wavesplatform.dex.model._
 import com.wavesplatform.dex.queue.QueueEvent.Canceled
@@ -27,8 +27,8 @@ import org.scalatest.concurrent.Eventually
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-class OrderBookActorSpecification
-    extends MatcherSpec("OrderBookActor")
+class OrderBookStateActorSpecification
+    extends MatcherSpec("OrderBookStateActor")
     with NTPTime
     with ImplicitSender
     with MatcherSpecBase
@@ -43,7 +43,7 @@ class OrderBookActorSpecification
 
   private def update(ap: AssetPair)(snapshot: OrderBook.AggregatedSnapshot): Unit = obc.put(ap, snapshot)
 
-  private def obcTest(f: (AssetPair, TestActorRef[OrderBookActor with RestartableActor], TestProbe) => Unit): Unit =
+  private def obcTest(f: (AssetPair, TestActorRef[OrderBookStateActor with RestartableActor], TestProbe) => Unit): Unit =
     obcTestWithPrepare((_, _) => ()) { (pair, actor, probe) =>
       probe.expectMsg(OrderBookRecovered(pair, None))
       f(pair, actor, probe)
@@ -63,7 +63,7 @@ class OrderBookActorSpecification
 
   private def obcTestWithPrepare(prepare: (OrderBookSnapshotDB, AssetPair) => Unit,
                                  matchingRules: NonEmptyList[DenormalizedMatchingRule] = NonEmptyList.one(DenormalizedMatchingRule(0, 0.00000001)))(
-      f: (AssetPair, TestActorRef[OrderBookActor with RestartableActor], TestProbe) => Unit): Unit = {
+      f: (AssetPair, TestActorRef[OrderBookStateActor with RestartableActor], TestProbe) => Unit): Unit = {
 
     obc.clear()
     md.clear()
@@ -75,7 +75,7 @@ class OrderBookActorSpecification
     prepare(obsdb, pair)
 
     val orderBookActor = TestActorRef(
-      new OrderBookActor(
+      new OrderBookStateActor(
         tp.ref,
         tp.ref,
         system.actorOf(OrderBookSnapshotStoreActor.props(obsdb)),
@@ -93,7 +93,7 @@ class OrderBookActorSpecification
     system.stop(orderBookActor)
   }
 
-  "OrderBookActor" should {
+  "OrderBookStateActor" should {
     "recover from snapshot - 1" in obcTestWithPrepare((_, _) => ()) { (pair, _, tp) =>
       tp.expectMsg(OrderBookRecovered(pair, None))
     }

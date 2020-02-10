@@ -9,7 +9,7 @@ import com.wavesplatform.dex.domain.order.Order
 import com.wavesplatform.dex.domain.utils.{LoggerFacade, ScorexLogging}
 import com.wavesplatform.dex.error
 import com.wavesplatform.dex.market.MatcherActor.{ForceStartOrderBook, OrderBookCreated, SaveSnapshot}
-import com.wavesplatform.dex.market.OrderBookActor._
+import com.wavesplatform.dex.market.OrderBookStateActor._
 import com.wavesplatform.dex.metrics.TimerExt
 import com.wavesplatform.dex.model.Events.{Event, OrderAdded, OrderCancelFailed}
 import com.wavesplatform.dex.model.OrderBook.LastTrade
@@ -25,22 +25,22 @@ import play.api.libs.json._
 
 import scala.concurrent.ExecutionContext
 
-class OrderBookActor(owner: ActorRef,
-                     addressActor: ActorRef,
-                     snapshotStore: ActorRef,
-                     assetPair: AssetPair,
-                     updateSnapshot: OrderBook.AggregatedSnapshot => Unit,
-                     updateMarketStatus: MarketStatus => Unit,
-                     time: Time,
-                     var matchingRules: NonEmptyList[DenormalizedMatchingRule],
-                     updateCurrentMatchingRules: DenormalizedMatchingRule => Unit,
-                     normalizeMatchingRule: DenormalizedMatchingRule => MatchingRule,
-                     getMakerTakerFeeByOffset: Long => (AcceptedOrder, LimitOrder) => (Long, Long))(implicit ec: ExecutionContext)
+class OrderBookStateActor(owner: ActorRef,
+                          addressActor: ActorRef,
+                          snapshotStore: ActorRef,
+                          assetPair: AssetPair,
+                          updateSnapshot: OrderBook.AggregatedSnapshot => Unit,
+                          updateMarketStatus: MarketStatus => Unit,
+                          time: Time,
+                          var matchingRules: NonEmptyList[DenormalizedMatchingRule],
+                          updateCurrentMatchingRules: DenormalizedMatchingRule => Unit,
+                          normalizeMatchingRule: DenormalizedMatchingRule => MatchingRule,
+                          getMakerTakerFeeByOffset: Long => (AcceptedOrder, LimitOrder) => (Long, Long))(implicit ec: ExecutionContext)
     extends Actor
     with WorkingStash
     with ScorexLogging {
 
-  protected override lazy val log = LoggerFacade(LoggerFactory.getLogger(s"OrderBookActor[$assetPair]"))
+  protected override lazy val log = LoggerFacade(LoggerFactory.getLogger(s"OrderBookStateActor[$assetPair]"))
 
   private var savingSnapshot          = Option.empty[QueueEventWithMeta.Offset]
   private var lastSavedSnapshotOffset = Option.empty[QueueEventWithMeta.Offset]
@@ -179,7 +179,7 @@ class OrderBookActor(owner: ActorRef,
   snapshotStore ! OrderBookSnapshotStoreActor.Message.GetSnapshot(assetPair)
 }
 
-object OrderBookActor {
+object OrderBookStateActor {
 
   def props(parent: ActorRef,
             addressActor: ActorRef,
@@ -193,7 +193,7 @@ object OrderBookActor {
             normalizeMatchingRule: DenormalizedMatchingRule => MatchingRule,
             getMakerTakerFeeByOffset: Long => (AcceptedOrder, LimitOrder) => (Long, Long))(implicit ec: ExecutionContext): Props =
     Props(
-      new OrderBookActor(
+      new OrderBookStateActor(
         parent,
         addressActor,
         snapshotStore,

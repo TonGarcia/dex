@@ -13,7 +13,7 @@ import com.wavesplatform.dex.domain.bytes.ByteStr
 import com.wavesplatform.dex.grpc.integration.dto.BriefAssetDescription
 import com.wavesplatform.dex.market.MatcherActor.{ForceStartOrderBook, GetMarkets, MarketData, SaveSnapshot}
 import com.wavesplatform.dex.market.MatcherActorSpecification.{DeletingActor, FailAtStartActor, NothingDoActor, RecoveringActor, _}
-import com.wavesplatform.dex.market.OrderBookActor.{OrderBookRecovered, OrderBookSnapshotUpdateCompleted}
+import com.wavesplatform.dex.market.OrderBookStateActor.{OrderBookRecovered, OrderBookSnapshotUpdateCompleted}
 import com.wavesplatform.dex.model.{Events, OrderBook}
 import com.wavesplatform.dex.queue.{QueueEvent, QueueEventWithMeta}
 import com.wavesplatform.dex.settings.{DenormalizedMatchingRule, MatchingRule}
@@ -110,7 +110,7 @@ class MatcherActorSpecification
           ob.get()(pair2) shouldBe 'right
         }
 
-        val toKill = actor.getChild(List(OrderBookActor.name(pair1)).iterator)
+        val toKill = actor.getChild(List(OrderBookStateActor.name(pair1)).iterator)
 
         probe.watch(toKill)
         toKill.tell(Kill, actor)
@@ -252,7 +252,7 @@ class MatcherActorSpecification
         sendBuyOrders(eventSender, matcherActor, pair23, 0 to 30)
         probe.expectMsg(OrderBookSnapshotUpdateCompleted(pair23, Some(9)))
 
-        // OrderBookSnapshotUpdated(pair23, 26) is ignored in OrderBookActor, because it's waiting for SaveSnapshotSuccess of 9 from SnapshotStore.
+        // OrderBookSnapshotUpdated(pair23, 26) is ignored in OrderBookStateActor, because it's waiting for SaveSnapshotSuccess of 9 from SnapshotStore.
         probe.expectNoMessage(200.millis)
 
         sendBuyOrders(eventSender, matcherActor, pair23, 31 to 45)
@@ -417,7 +417,7 @@ class MatcherActorSpecification
         doNothingOnRecovery,
         ob,
         (assetPair, matcher) =>
-          OrderBookActor.props(
+          OrderBookStateActor.props(
             matcher,
             addressActor,
             snapshotStoreActor,

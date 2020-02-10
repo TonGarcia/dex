@@ -9,7 +9,7 @@ import com.wavesplatform.dex.domain.asset.Asset.Waves
 import com.wavesplatform.dex.domain.asset.{Asset, AssetPair}
 import com.wavesplatform.dex.domain.utils.ScorexLogging
 import com.wavesplatform.dex.grpc.integration.dto.BriefAssetDescription
-import com.wavesplatform.dex.market.OrderBookActor._
+import com.wavesplatform.dex.market.OrderBookStateActor._
 import com.wavesplatform.dex.queue.QueueEventWithMeta.{Offset => EventOffset}
 import com.wavesplatform.dex.queue.{QueueEvent, QueueEventWithMeta}
 import com.wavesplatform.dex.settings.MatcherSettings
@@ -81,7 +81,7 @@ class MatcherActor(settings: MatcherSettings,
 
   private def createOrderBook(pair: AssetPair): ActorRef = {
     log.info(s"Creating order book for $pair")
-    val orderBook = context.watch(context.actorOf(orderBookActorProps(pair, self), OrderBookActor.name(pair)))
+    val orderBook = context.watch(context.actorOf(orderBookActorProps(pair, self), OrderBookStateActor.name(pair)))
     orderBooks.updateAndGet(_ + (pair -> Right(orderBook)))
     tradedPairs += pair -> createMarketData(pair)
     orderBook
@@ -96,7 +96,7 @@ class MatcherActor(settings: MatcherSettings,
       case Some(Right(ob)) => f(s, ob)
       case Some(Left(_))   => s ! OrderBookUnavailable(error.OrderBookBroken(assetPair))
       case None =>
-        if (context.child(OrderBookActor.name(assetPair)).nonEmpty) {
+        if (context.child(OrderBookStateActor.name(assetPair)).nonEmpty) {
           log.error(s"OrderBook for $assetPair is stopped, but it is not observed in orderBook")
           s ! OrderBookUnavailable(error.OrderBookUnexpectedState(assetPair))
         } else if (autoCreate) {

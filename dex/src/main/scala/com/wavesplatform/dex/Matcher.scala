@@ -28,7 +28,7 @@ import com.wavesplatform.dex.error.{ErrorFormatterContext, MatcherError}
 import com.wavesplatform.dex.grpc.integration.WavesBlockchainClientBuilder
 import com.wavesplatform.dex.grpc.integration.dto.BriefAssetDescription
 import com.wavesplatform.dex.history.HistoryRouter
-import com.wavesplatform.dex.market.OrderBookActor.MarketStatus
+import com.wavesplatform.dex.market.OrderBookStateActor.MarketStatus
 import com.wavesplatform.dex.market._
 import com.wavesplatform.dex.model._
 import com.wavesplatform.dex.queue._
@@ -120,7 +120,7 @@ class Matcher(settings: MatcherSettings)(implicit val actorSystem: ActorSystem) 
 
   private def orderBookProps(assetPair: AssetPair, matcherActor: ActorRef, assetDecimals: Asset => Int): Props = {
     matchingRulesCache.setCurrentMatchingRuleForNewOrderBook(assetPair, lastProcessedOffset, assetDecimals)
-    OrderBookActor.props(
+    OrderBookStateActor.props(
       matcherActor,
       addressActors,
       orderBookSnapshotStore,

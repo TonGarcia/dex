@@ -20,7 +20,7 @@ import com.wavesplatform.dex.effect.FutureResult
 import com.wavesplatform.dex.error.ErrorFormatterContext
 import com.wavesplatform.dex.grpc.integration.clients.RunScriptResult
 import com.wavesplatform.dex.grpc.integration.dto.BriefAssetDescription
-import com.wavesplatform.dex.market.OrderBookActor.MarketStatus
+import com.wavesplatform.dex.market.OrderBookStateActor.MarketStatus
 import com.wavesplatform.dex.model.OrderBook.AggregatedSnapshot
 import com.wavesplatform.dex.model.OrderValidator.{AsyncBlockchain, Result}
 import com.wavesplatform.dex.settings.AssetType.AssetType
