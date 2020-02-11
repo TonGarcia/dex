@@ -41,7 +41,7 @@ class AddressActor(owner: Address,
                    orderDB: OrderDB,
                    hasOrderInBlockchain: Order.Id => Future[Boolean],
                    store: StoreEvent,
-                   orderBookCache: AssetPair => OrderBook.AggregatedSnapshot,
+                   orderBookCache: AssetPair => OrderBookAggregatedSnapshot,
                    var enableSchedules: Boolean,
                    batchCancelTimeout: FiniteDuration = 20.seconds)(implicit efc: ErrorFormatterContext)
     extends Actor

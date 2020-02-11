@@ -16,8 +16,7 @@ import com.wavesplatform.dex.error.ErrorFormatterContext
 import com.wavesplatform.dex.grpc.integration.clients.WavesBlockchainClient.SpendableBalanceChanges
 import com.wavesplatform.dex.market.MatcherSpecLike
 import com.wavesplatform.dex.model.Events.{OrderAdded, OrderCanceled, OrderExecuted}
-import com.wavesplatform.dex.model.OrderBook._
-import com.wavesplatform.dex.model.{LevelAgg, LimitOrder, MarketOrder, OrderHistoryStub}
+import com.wavesplatform.dex.model.{OrderBookAggregatedSnapshot, LevelAgg, LimitOrder, MarketOrder, OrderHistoryStub}
 import com.wavesplatform.dex.queue.{QueueEvent, QueueEventWithMeta}
 import com.wavesplatform.dex.time.NTPTime
 import com.wavesplatform.dex.util.getSimpleName
@@ -111,7 +110,7 @@ class ReservedBalanceSpecification
               new TestOrderDB(100),
               _ => Future.successful(false),
               _ => Future.failed(new IllegalStateException("Should not be used in the test")),
-              orderBookCache = _ => AggregatedSnapshot(),
+              orderBookCache = _ => OrderBookAggregatedSnapshot.empty,
               enableSchedules
             )
         ),
@@ -479,7 +478,7 @@ class ReservedBalanceSpecification
   private val ETH   = mkAssetId("ETH")
 
   private def addressDirWithSpendableBalance(spendableBalance: Asset => Future[Long],
-                                             orderBookCache: AssetPair => AggregatedSnapshot = _ => AggregatedSnapshot(),
+                                             orderBookCache: AssetPair => OrderBookAggregatedSnapshot = _ => OrderBookAggregatedSnapshot.empty,
                                              testProbe: TestProbe): ActorRef = {
     system.actorOf(
       Props(
@@ -664,11 +663,11 @@ class ReservedBalanceSpecification
         s"Reserves of the market order (${printMarketOrderInfo(moTpe, moAmt, moPrc, moFeeAsst, balance)}) executed with the counter order (${printLimitOrderInfo(moTpe.opposite, loAmt, loPrc)}) should be correct"
       } {
 
-        val orderBookCache: AssetPair => AggregatedSnapshot = _ => {
+        val orderBookCache: AssetPair => OrderBookAggregatedSnapshot = _ => {
           val levels = Seq(LevelAgg(loAmt, loPrc))
           moTpe match {
-            case BUY  => AggregatedSnapshot(asks = levels)
-            case SELL => AggregatedSnapshot(bids = levels)
+            case BUY  => OrderBookAggregatedSnapshot(asks = levels)
+            case SELL => OrderBookAggregatedSnapshot(bids = levels)
           }
         }
 
